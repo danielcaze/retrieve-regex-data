@@ -54,6 +54,7 @@ const preposicoes = [
   "tras",
   "trás",
 ];
+// Inicio, espaço ou espaço, fim
 const regexPreposicoes = new RegExp(
   `(^|\\s)(?:${preposicoes.join("|")})(\\s|$)`
 );
@@ -108,6 +109,8 @@ axios({
         if (dataFromTable) {
           let endereco = correctText(dataFromTable);
 
+          // captura qualquer coisa até a primeira vírgula
+          // após a vírgula, captura opcionalmente qualquer número que possa ter um hífen
           let ruaNumeroMatch = endereco.match(/^(.+?),\s*([\d-]+)?/);
           let rua = ruaNumeroMatch
             ? ruaNumeroMatch[1].trim()
@@ -117,6 +120,8 @@ axios({
               ? ruaNumeroMatch[2].trim()
               : "Número não encontrado";
 
+          // começa com um hífen e captura qualquer coisa até a próxima vírgula
+          // captura qualquer coisa até o próximo hífen e então dois caracteres maiúsculos (estado)
           let bairroMatch = endereco
             .substr(rua.length + numero.length)
             .match(/-\s*(.+?),\s*([^,]+)\s*-\s*([A-Z]{2}),/);
@@ -124,6 +129,7 @@ axios({
             ? bairroMatch[1].trim()
             : "Bairro não encontrado";
 
+          // começa com uma vírgula, captura qualquer coisa até o próximo hífen e então doiscaracteres maiúsculos (estado)
           let cidadeEstadoMatch = endereco.match(
             /,\s*([^,]+)\s*-\s*([A-Z]{2}),/
           );
@@ -135,9 +141,11 @@ axios({
               "Estado não encontrado"
             : "Estado não encontrado";
 
+          // captura exatamente 5 dígitos seguidos por um hífen e então 3 dígitos
           let cepMatch = endereco.match(/(\d{5}-\d{3})/);
           let cep = cepMatch ? cepMatch[1] : "CEP não encontrado";
 
+          // começa com uma vírgula e captura qualquer coisa até o final da string
           let paisMatch = endereco.match(/,\s*([^,]+)$/);
           let pais = paisMatch ? paisMatch[1].trim() : "País não encontrado";
 
@@ -151,6 +159,7 @@ axios({
 
           // Se não encontrar um bairro, tente encontrar a cidade e o estado de novo sem um bairro
           if (bairro === "Bairro não encontrado") {
+            // Virgula seguida de 0 ou mais espaços depois mais nenhuma virgula, hifens envoltos ou não de espaço, estado e um cep envolto ou não de espaços
             let cidadeEstadoSemBairroMatch = endereco.match(
               /,\s*([^,]+)\s*-\s*([A-Z]{2})(?=\s*,\s*\d{5}-\d{3})/
             );
